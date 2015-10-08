@@ -1,9 +1,13 @@
 angular.module \main, <[]>
   ..controller \main, <[$scope]> ++ ($scope) ->
     [w,h,padding] = [1024, 600, 60]
+    $scope.chosen = null
     $scope.nodes = []
     $scope.remove = -> 
-      $scope.nodes.splice 0,1
+      if typeof($scope.chosen)==typeof(1) and $scope.chosen < $scope.nodes.length =>
+        $scope.nodes.splice($scope.chosen,1)
+        $scope.chosen = undefined
+      else $scope.nodes.splice 0,1
       build!
     $scope.random = ->
       random!
@@ -42,7 +46,7 @@ angular.module \main, <[]>
           if node.attr(\idx) => break
           node = $(node.parent!)
           if node.0.nodeName in <[BODY SVG]> => break
-        if node.attr(\idx) => $scope.idx = parseInt(that)
+        if node.attr(\idx) => $scope.idx = $scope.chosen = parseInt(that)
       move: (e) -> 
         item = $scope.nodes[$scope.idx]
         if item and !$scope.ctrl =>
@@ -56,4 +60,9 @@ angular.module \main, <[]>
       mup:  (e) -> 
         $scope.idx = null
         $scope.ctrl = null
-
+      keydown: (e) ->
+        keycode = e.keyCode or e.which
+        if keycode == 8 => 
+          e.prevent-default!
+          $scope.remove!
+      keypress: (e) ->

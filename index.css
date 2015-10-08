@@ -11,12 +11,19 @@ body {
 svg {
   border: 1px solid #000;
 }
+circle.anchor {
+  stroke: #000;
+  fill: #000;
+}
 circle.ctrl {
   stroke: #000;
   fill: #fff;
 }
 circle {
   cursor: move;
+}
+g.active circle.anchor {
+  fill: #f00;
 }
 line.ctrl {
   stroke-dasharray: 2 2;
