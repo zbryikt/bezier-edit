@@ -1,0 +1,37 @@
+doctype html
+//- basic libraries: jquery(1.10.2), d3js(3.3.11), angularjs(1.2.3), bootstrap(3.0)/semantic-ui(0.9.3/0.9.5)
+//-                  fontawesome(4.4.0)
+- var use = { cdn: true, og: false, favicon: true }
+- var lib = { jquery: true, d3js: false, angular: true, bootstrap: true, semantic: false, fontawesome: true }
+- var assets = "assets"
+- var thumbnail = "thumbnail.png"
+- var favicon = "thumbnail.png"
+html(lang="en")
+  head(prefix="og: http://ogp.me/ns#")
+    meta(charset="utf-8")
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title template
+    // libraries
+    include library.jade
+    // custom files
+    link(rel="stylesheet",type="text/css",href="index.css")
+    script(type="text/javascript",src="index.js")
+  body(ng-app="main",ng-controller="main",
+  ng-mousedown="ptrctrl.down($event)",ng-mousemove="ptrctrl.move($event)",ng-mouseup="ptrctrl.mup($event)")
+    #root
+      .btn.btn-default(ng-click="random()") Add Node
+      |  
+      .btn.btn-default(ng-click="remove()") Remove Node
+      br
+      br
+      svg#svg(width="1024px",height="600px",viewBox="0 0 1024 600",preserveAspectRatio="xMidYMid")
+        path(ng-attr-d="{{path}}",stroke="black",fill="none")
+        g(ng-repeat="c in nodes",
+        ng-attr-transform="translate({{c.anchor[0]}} {{c.anchor[1]}})",ng-attr-idx="{{$index}}")
+          line.ctrl(ng-attr-x1="{{c.ctrl1[0]}}",ng-attr-y1="{{c.ctrl1[1]}}",
+          ng-attr-x2="0",ng-attr-y2="0",stroke="black",ng-if="$index>0")
+          line.ctrl(ng-attr-x1="{{c.ctrl2[0]}}",ng-attr-y1="{{c.ctrl2[1]}}",
+          ng-attr-x2="0",ng-attr-y2="0",stroke="black",ng-if="$index<nodes.length - 1")
+          circle(cx="0",cy="0",r="4",fill="black")
+          circle.ctrl(ng-attr-cx="{{c.ctrl1[0]}}",ng-attr-cy="{{c.ctrl1[1]}}",r="3",ctrl="1",ng-if="$index>0")
+          circle.ctrl(ng-attr-cx="{{c.ctrl2[0]}}",ng-attr-cy="{{c.ctrl2[1]}}",r="3",ctrl="2",ng-if="$index<nodes.length - 1")

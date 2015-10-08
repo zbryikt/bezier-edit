@@ -1,0 +1,59 @@
+angular.module \main, <[]>
+  ..controller \main, <[$scope]> ++ ($scope) ->
+    [w,h,padding] = [1024, 600, 60]
+    $scope.nodes = []
+    $scope.remove = -> 
+      $scope.nodes.splice 0,1
+      build!
+    $scope.random = ->
+      random!
+      build!
+    random = (key) ->
+      ret = {}
+      if typeof(key) != "undefined" =>
+        ret.anchor = [
+          padding + ( w - padding * 2 ) * ( key % 2),
+          padding + key * 50
+        ]
+      else ret.anchor = [Math.random!*( w - padding * 2) + padding ,Math.random!*( h - padding * 2 ) + padding]
+      ret.ctrl1 = [Math.random!*100 - 50, Math.random!*100 - 50]
+      ret.ctrl2 = [Math.random!*100 - 50, Math.random!*100 - 50]
+      $scope.nodes.push ret
+    for i from 0 til 6 => random i
+    build = ->
+      ret = "M#{$scope.nodes.0.anchor.0} #{$scope.nodes.0.anchor.1}"
+      last = $scope.nodes.0
+      for i from 1 til $scope.nodes.length =>
+        item = $scope.nodes[i]
+        c1x = last.anchor.0 + last.ctrl2.0
+        c1y = last.anchor.1 + last.ctrl2.1
+        c2x = item.anchor.0 + item.ctrl1.0
+        c2y = item.anchor.1 + item.ctrl1.1
+        ret += "C#{c1x} #{c1y} #{c2x} #{c2y} #{item.anchor.0} #{item.anchor.1}"
+        last = item
+      $scope.path = ret
+    $scope.$watch 'nodes', -> build!
+    $scope.ptrctrl = do
+      down: (e) -> 
+        node = $(e.target)
+        if (node.attr(\class) or "").split(' ').indexOf(\ctrl) >= 0 =>
+          $scope.ctrl = node.attr \ctrl
+        while node
+          if node.attr(\idx) => break
+          node = $(node.parent!)
+          if node.0.nodeName in <[BODY SVG]> => break
+        if node.attr(\idx) => $scope.idx = parseInt(that)
+      move: (e) -> 
+        item = $scope.nodes[$scope.idx]
+        if item and !$scope.ctrl =>
+          item.anchor.0 = e.offsetX
+          item.anchor.1 = e.offsetY
+          build!
+        if item and $scope.ctrl =>
+          item["ctrl#{$scope.ctrl}"].0 = e.offsetX - item.anchor.0
+          item["ctrl#{$scope.ctrl}"].1 = e.offsetY - item.anchor.1
+          build!
+      mup:  (e) -> 
+        $scope.idx = null
+        $scope.ctrl = null
+

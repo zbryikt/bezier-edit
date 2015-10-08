@@ -1,0 +1,23 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+#root {
+  margin: 20px;
+}
+svg {
+  border: 1px solid #000;
+}
+circle.ctrl {
+  stroke: #000;
+  fill: #fff;
+}
+circle {
+  cursor: move;
+}
+line.ctrl {
+  stroke-dasharray: 2 2;
+}
