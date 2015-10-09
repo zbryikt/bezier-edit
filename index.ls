@@ -76,3 +76,12 @@ angular.module \main, <[firebase]>
           e.prevent-default!
           $scope.remove!
       keypress: (e) ->
+    ldColorPicker.init!
+    $scope.color = do
+      set-target: -> @target = it
+      fill: \none
+      stroke: \black
+    $(\#fillbtn).0._ldcpnode._ldcp.on \change, (color) -> 
+      #$("\##{$scope.color.target}btn").css({color:it})
+      console.log $scope.color.target, color
+      $scope.$apply -> $scope.color[$scope.color.target] = color
