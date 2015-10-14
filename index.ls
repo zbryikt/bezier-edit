@@ -1,20 +1,43 @@
 angular.module \main, <[firebase]>
   ..controller \main, <[$scope $firebaseArray]> ++ ($scope, $firebaseArray) ->
-    ref = new Firebase(\https://aidraw.firebaseio.com/points)
-    list = $firebaseArray(ref)
-    list.$watch -> build!
+    #ref = new Firebase(\https://aidraw.firebaseio.com/layers)
+    #layers = $firebaseArray(ref)
+    #layers.$watch -> build!
+    #list = []
+    #if layers.length == 0 => layers.$add(list)
 
     [w,h,padding] = [1024, 600, 60]
     $scope.chosen = null
-    $scope.nodes = list
+    $scope.layers = [{points:[],stroke:\#000000,fill:\none}]
+    $scope.nodes = $scope.layers.0
+    $scope.layer = do
+      add: -> $scope.layers.push {points:[],stroke:\#000000,fill:\none}
+      remove: -> 
+        if $scope.layers.length <=1 => return
+        idx = $scope.layers.indexOf(@target)
+        $scope.layers.splice(idx,1)
+        @target = $scope.layers[idx - 1 >? 0]
+        @set(idx - 1 >? 0)
+      set: -> 
+        if typeof(it) == typeof(0) => @target = $scope.layers[it]
+        else => @target = it
+        $scope.nodes = @target
+      target: $scope.layers.0
+      buildall: ->
+        for layer in $scope.layers =>
+          points = layer.points
+          if points.length == 0 => continue
+          ret = getpath points
+          layer.path = ret
+
     $scope.remove = -> 
-      if typeof($scope.chosen)==typeof(1) and $scope.chosen < $scope.nodes.length =>
-        $scope.nodes.$remove $scope.chosen
-        #$scope.nodes.splice($scope.chosen,1)
+      if typeof($scope.chosen)==typeof(1) and $scope.chosen < $scope.nodes.points.length =>
+        #$scope.nodes.$remove $scope.chosen
+        $scope.nodes.points.splice($scope.chosen,1)
         $scope.chosen = undefined
       else
-        $scope.nodes.$remove 0
-        #$scope.nodes.splice 0,1
+        #$scope.nodes.$remove 0
+        $scope.nodes.points.splice 0,1
       build!
     $scope.random = ->
       random!
@@ -29,22 +52,26 @@ angular.module \main, <[firebase]>
       else ret.anchor = [Math.random!*( w - padding * 2) + padding ,Math.random!*( h - padding * 2 ) + padding]
       ret.ctrl1 = [Math.random!*100 - 50, Math.random!*100 - 50]
       ret.ctrl2 = [Math.random!*100 - 50, Math.random!*100 - 50]
-      $scope.nodes.$add ret
-      #$scope.nodes.push ret
+      #$scope.nodes.$add ret
+      $scope.nodes.points.push ret
     #if $scope.nodes.length == 0 => for i from 0 til 6 => random i
     build = ->
-      if $scope.nodes.length == 0 => return
-      ret = "M#{$scope.nodes.0.anchor.0} #{$scope.nodes.0.anchor.1}"
-      last = $scope.nodes.0
-      for i from 1 til $scope.nodes.length =>
-        item = $scope.nodes[i]
+      if $scope.nodes.points.length == 0 => return
+      ret = getpath $scope.nodes.points
+      $scope.path = ret
+      $scope.layer.buildall!
+    getpath = (points) ->
+      ret = "M#{points.0.anchor.0} #{points.0.anchor.1}"
+      last = points.0
+      for i from 1 til points.length =>
+        item = points[i]
         c1x = last.anchor.0 + last.ctrl2.0
         c1y = last.anchor.1 + last.ctrl2.1
         c2x = item.anchor.0 + item.ctrl1.0
         c2y = item.anchor.1 + item.ctrl1.1
         ret += "C#{c1x} #{c1y} #{c2x} #{c2y} #{item.anchor.0} #{item.anchor.1}"
         last = item
-      $scope.path = ret
+      return ret
     $scope.$watch 'nodes', -> build!
     $scope.ptrctrl = do
       down: (e) -> 
@@ -57,16 +84,24 @@ angular.module \main, <[firebase]>
           if node.0.nodeName in <[BODY SVG]> => break
         if node.attr(\idx) => $scope.idx = $scope.chosen = parseInt(that)
       move: (e) -> 
-        item = $scope.nodes[$scope.idx]
+        [x,y] = [ e.offsetX, e.offsetY ]
+        [w,h] = [ $(\svg).width!, $(\svg).height! ]
+        [aw,ah] = [w,h]
+        if w/h > 1024/600 => w = h * 1024 / 600
+        else if w/h < 1024/600 => h = w * 600 / 1024
+        [dx,dy] = [(aw - w)/2, (ah - h)/2]
+        x = ( (x - dx) / w ) * 1024
+        y = ( (y - dy) / h ) * 600
+        item = $scope.nodes.points[$scope.idx]
         if item and !$scope.ctrl =>
-          item.anchor.0 = e.offsetX
-          item.anchor.1 = e.offsetY
+          item.anchor.0 = x
+          item.anchor.1 = y
           build!
         if item and $scope.ctrl =>
-          item["ctrl#{$scope.ctrl}"].0 = e.offsetX - item.anchor.0
-          item["ctrl#{$scope.ctrl}"].1 = e.offsetY - item.anchor.1
+          item["ctrl#{$scope.ctrl}"].0 = x - item.anchor.0
+          item["ctrl#{$scope.ctrl}"].1 = y - item.anchor.1
           build!
-        $scope.nodes.$save $scope.idx
+        #$scope.layers.$save $scope.idx
       mup:  (e) -> 
         $scope.idx = null
         $scope.ctrl = null
@@ -84,4 +119,6 @@ angular.module \main, <[firebase]>
     $(\#fillbtn).0._ldcpnode._ldcp.on \change, (color) -> 
       #$("\##{$scope.color.target}btn").css({color:it})
       console.log $scope.color.target, color
-      $scope.$apply -> $scope.color[$scope.color.target] = color
+      #$scope.$apply -> $scope.color[$scope.color.target] = color
+      $scope.$apply -> 
+        $scope.nodes[$scope.color.target] = color

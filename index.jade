@@ -45,15 +45,25 @@ html(lang="en")
           i.fa.fa-ban(ng-if="color.stroke=='none'",style="color:#ccc")
       br
       br
-      svg#svg(width="1024px",height="600px",viewBox="0 0 1024 600",preserveAspectRatio="xMidYMid")
-        path(ng-attr-d="{{path}}",ng-attr-stroke="{{color.stroke}}",ng-attr-fill="{{color.fill}}")
-        g(ng-repeat="c in nodes",
-        ng-attr-transform="translate({{c.anchor[0]}} {{c.anchor[1]}})",ng-attr-idx="{{$index}}",
-        ng-class="{'active':$index==chosen}")
-          line.ctrl(ng-attr-x1="{{c.ctrl1[0]}}",ng-attr-y1="{{c.ctrl1[1]}}",
-          ng-attr-x2="0",ng-attr-y2="0",stroke="black",ng-if="$index>0")
-          line.ctrl(ng-attr-x1="{{c.ctrl2[0]}}",ng-attr-y1="{{c.ctrl2[1]}}",
-          ng-attr-x2="0",ng-attr-y2="0",stroke="black",ng-if="$index<nodes.length - 1")
-          circle.anchor(cx="0",cy="0",r="4",fill="black")
-          circle.ctrl(ng-attr-cx="{{c.ctrl1[0]}}",ng-attr-cy="{{c.ctrl1[1]}}",r="3",ctrl="1",ng-if="$index>0")
-          circle.ctrl(ng-attr-cx="{{c.ctrl2[0]}}",ng-attr-cy="{{c.ctrl2[1]}}",r="3",ctrl="2",ng-if="$index<nodes.length - 1")
+      .row
+        .col-sm-8
+          svg#svg.widget(width="90%",height="600px",viewBox="0 0 1024 600",preserveAspectRatio="xMidYMid")
+            path(ng-repeat="l in layers",ng-attr-d="{{l.path}}",ng-attr-stroke="{{l.stroke}}",ng-attr-fill="{{l.fill}}",opacity="0.5")
+            path(ng-attr-d="{{path}}",ng-attr-stroke="{{nodes.stroke}}",ng-attr-fill="{{nodes.fill}}")
+            g(ng-repeat="c in nodes.points",
+            ng-attr-transform="translate({{c.anchor[0]}} {{c.anchor[1]}})",ng-attr-idx="{{$index}}",
+            ng-class="{'active':$index==chosen}")
+              line.ctrl(ng-attr-x1="{{c.ctrl1[0]}}",ng-attr-y1="{{c.ctrl1[1]}}",
+              ng-attr-x2="0",ng-attr-y2="0",stroke="black",ng-if="$index>0")
+              line.ctrl(ng-attr-x1="{{c.ctrl2[0]}}",ng-attr-y1="{{c.ctrl2[1]}}",
+              ng-attr-x2="0",ng-attr-y2="0",stroke="black",ng-if="$index<nodes.points.length - 1")
+              circle.anchor(cx="0",cy="0",r="4",fill="black")
+              circle.ctrl(ng-attr-cx="{{c.ctrl1[0]}}",ng-attr-cy="{{c.ctrl1[1]}}",r="3",ctrl="1",ng-if="$index>0")
+              circle.ctrl(ng-attr-cx="{{c.ctrl2[0]}}",ng-attr-cy="{{c.ctrl2[1]}}",r="3",ctrl="2",ng-if="$index<nodes.points.length - 1")
+        .col-sm-4
+          #layers.widget
+            .layer.widget(ng-repeat="l in layers",ng-click="layer.set(l)",ng-class="{'active':layer.target==l}") layer #[small ( {{l.points.length}} nodes)]
+            .text-center
+              .btn-group(style="margin-top:10px")
+                .btn.btn-default.btn-sm(ng-click="layer.add()") Add
+                .btn.btn-default.btn-sm(ng-click="layer.remove()") Remove

@@ -8,8 +8,14 @@ body {
 #root {
   margin: 20px;
 }
+.widget {
+  border: 1px solid #999;
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+}
 svg {
-  border: 1px solid #000;
+  margin: auto;
 }
 circle.anchor {
   stroke: #000;
@@ -37,4 +43,23 @@ line.ctrl {
 }
 .ldcp-panel.ldcp-picker .ldcp-functions .ldcp-btn:after {
   margin-top: -2px;
+}
+#layers {
+  width: 90%;
+  margin: auto;
+  height: 600px;
+  padding: 10px;
+}
+.layer {
+  width: 80%;
+  margin: auto;
+  height: 32px;
+  padding: 5px;
+  text-align: center;
+  cursor: pointer;
+}
+.layer.active {
+  box-shadow: 0 2px 3px rgba(255,192,0,0.5);
+  border-color: #c08000;
+  background: rgba(255,240,0,0.2);
 }
