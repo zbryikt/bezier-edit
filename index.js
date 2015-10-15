@@ -126,6 +126,28 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     return $scope.layers.$save(desIdx);
   };
   $scope.layer = {
+    clone: function(it){
+      var ret, ref$, ref1$, res$, i$, len$;
+      ret = (ref1$ = {}, ref1$.stroke = (ref$ = $scope.nodes).stroke, ref1$.fill = ref$.fill, ref1$.isClosed = ref$.isClosed, ref1$);
+      res$ = [];
+      for (i$ = 0, len$ = (ref$ = (ref1$ = $scope.nodes).points || (ref1$.points = [])).length; i$ < len$; ++i$) {
+        it = ref$[i$];
+        res$.push({
+          anchor: it.anchor.slice(),
+          ctrl1: it.ctrl1.slice(),
+          ctrl2: it.ctrl2.slice()
+        });
+      }
+      ret.points = res$;
+      ret.order = ++$scope.orders;
+      ret.lid = ++$scope.layerid;
+      ret.offset = import$({}, $scope.nodes.offset);
+      ret.offset.x += Math.random() * 50 + 20;
+      ret.offset.y += Math.random() * 50 + 20;
+      return $scope.layers.$add(ret).then(function(ref){
+        return $scope.layer.set($scope.layers[$scope.layers.$indexFor(ref.key())]);
+      });
+    },
     add: function(cb, active){
       var ret;
       cb == null && (cb = null);
@@ -133,7 +155,7 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       ret = {
         points: [],
         stroke: '#000000',
-        fill: 'none',
+        fill: '#eeeeee',
         order: ++$scope.orders,
         lid: ++$scope.layerid
       };
@@ -150,34 +172,28 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       });
     },
     remove: function(){
-      var order, idx, canodr, i$, to$, i;
+      var order, this$ = this;
       if ($scope.layers.length <= 1) {
         return;
       }
       order = this.target.order;
-      idx = $scope.layers.indexOf(this.target);
-      $scope.layers.$remove(idx);
-      canodr = -1;
-      for (i$ = 0, to$ = $scope.layers.length; i$ < to$; ++i$) {
-        i = i$;
-        if ($scope.layers[i].order < order && $scope.layers[i].order > canodr) {
-          canodr = $scope.layers[i].order;
-        }
-      }
-      if (canodr = -1) {
-        canodr = $scope.orders + 1;
+      return $scope.layers.$remove(this.target).then(function(){
+        var min, i$, to$, idx, dis;
+        min = {
+          dis: -1,
+          idx: -1
+        };
         for (i$ = 0, to$ = $scope.layers.length; i$ < to$; ++i$) {
-          i = i$;
-          if ($scope.layers[i].order > order && $scope.layers[i].order < canodr) {
-            canodr = $scope.layers[i].order;
+          idx = i$;
+          dis = Math.abs(order - $scope.layers[idx].order);
+          if (min.dis === -1 || dis < min.dis && dis > 0) {
+            min.dis = dis;
+            min.idx = idx;
           }
         }
-      }
-      this.target = $scope.layers.filter(function(it){
-        return it.order === canodr;
-      })[0];
-      idx = $scope.layers.indexOf(this.target);
-      return this.set(idx);
+        this$.target = $scope.layers[min.idx];
+        return this$.set(this$.target);
+      });
     },
     set: function(it){
       if (typeof it === typeof 0) {
@@ -185,10 +201,8 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       } else {
         this.target = it;
       }
-      console.log(it, this.target);
       $scope.nodes = this.target;
       $scope.range.update($scope.nodes);
-      console.log($scope.nodes.points);
       $scope.path = "";
       return build();
     },
@@ -464,8 +478,17 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
         rg.xb += os.x || 0;
         rg.ya += os.y || 0;
         rg.yb += os.y || 0;
+        rg.xa -= 5;
+        rg.ya -= 5;
+        rg.xb += 5;
+        rg.yb += 5;
         return ref$ = [rg.xa, rg.xb, rg.ya, rg.yb], rg.xc = ref$[0], rg.xd = ref$[1], rg.yc = ref$[2], rg.yd = ref$[3], ref$;
       }
     }
   };
 }));
+function import$(obj, src){
+  var own = {}.hasOwnProperty;
+  for (var key in src) if (own.call(src, key)) obj[key] = src[key];
+  return obj;
+}

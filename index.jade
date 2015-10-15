@@ -37,17 +37,17 @@ html(lang="en")
       span &nbsp;
       .btn-group
         #fillbtn.btn.btn-default(ng-click="color.setTarget('fill')",
-        ng-attr-style="color:{{color.fill}}",
+        ng-attr-style="color:{{nodes.fill}}",
         data-toggle="colorpicker",data-cpclass="shadow flat round",
         data-exclusive="true")
-          i.fa.fa-square(ng-if="color.fill!='none'")
-          i.fa.fa-ban(ng-if="color.fill=='none'",style="color:#ccc")
+          i.fa.fa-square(ng-if="nodes.fill!='none'")
+          i.fa.fa-ban(ng-if="nodes.fill=='none'",style="color:#ccc")
         #strokebtn.btn.btn-default(ng-click="color.setTarget('stroke')",
-        ng-attr-style="color:{{color.stroke}}",
+        ng-attr-style="color:{{nodes.stroke}}",
         data-toggle="colorpicker",data-cpclass="shadow flat round"
         data-exclusive="true")
-          i.fa.fa-square-o(ng-if="color.stroke!='none'")
-          i.fa.fa-ban(ng-if="color.stroke=='none'",style="color:#ccc")
+          i.fa.fa-square-o(ng-if="nodes.stroke!='none'")
+          i.fa.fa-ban(ng-if="nodes.stroke=='none'",style="color:#ccc")
         #closebtn.btn.btn-default(ng-click="setClose()") C
       br
       br
@@ -78,8 +78,9 @@ html(lang="en")
 
         .col-sm-4
           #layers.widget
-            .layer.widget(ng-drop="true",ng-drop-success="reorder($data, l.order, $event)",ng-drag="true",ng-drag-data="{{l.lid}}",ng-repeat="l in layers|orderBy:'order'",ng-click="layer.set(l)",ng-class="{'active':layer.target==l}") layer #[small ( {{l.points.length || 0}} nodes / {{l.order}})] 
-            .text-center
-              .btn-group(style="margin-top:10px")
+            .text-center(style="margin-bottom:10px")
+              .btn-group
                 .btn.btn-default.btn-sm(ng-click="layer.add()") Add
+                .btn.btn-default.btn-sm(ng-click="layer.clone()") Clone
                 .btn.btn-default.btn-sm(ng-click="layer.remove()") Remove
+            .layer.widget(ng-drop="true",ng-drop-success="reorder($data, l.order, $event)",ng-drag="true",ng-drag-data="{{l.lid}}",ng-repeat="l in layers|orderBy:'order'",ng-click="layer.set(l)",ng-class="{'active':layer.target==l}") layer #[small ( {{l.points.length || 0}} nodes / {{l.order}})] 

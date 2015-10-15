@@ -25,9 +25,6 @@ angular.module \main, <[firebase ngDraggable]>
     [w,h,padding] = [1024, 600, 60]
     $scope.chosen = null
     $scope.layers = (if layers? => layers else [])
-    #if $scope.layers.length == 0 => 
-    #  $scope.layers.$add({points:[],stroke:\#000000,fill:\none})
-      #$scope.layers.push {points:[],stroke:\#000000,fill:\none}
     $scope.set-close = -> 
       $scope.nodes.is-closed = !!!$scope.nodes.is-closed
       build!
@@ -85,45 +82,44 @@ angular.module \main, <[firebase ngDraggable]>
           $scope.layers.$save i
       des.order = d
       $scope.layers.$save des-idx
-      #layer = $scope.layers.splice(s,1).0
-      #if d <= $scope.layers.length => $scope.layers.splice d, 0, layer
-      #else $scope.layers.push layer
     $scope.layer = do
+      clone: ->
+        ret = {} <<< $scope.nodes{stroke,fill,is-closed}
+        ret.points = [{
+          anchor: it.anchor.slice!, ctrl1: it.ctrl1.slice!, ctrl2: it.ctrl2.slice!
+        } for it in $scope.nodes.[]points]
+        ret.order = ++$scope.orders
+        ret.lid = ++$scope.layerid
+        ret.offset = {} <<< $scope.nodes.offset
+        ret.offset.x += Math.random! * 50 + 20
+        ret.offset.y += Math.random! * 50 + 20
+        $scope.layers.$add ret .then (ref) ->
+          $scope.layer.set $scope.layers[$scope.layers.$indexFor(ref.key!)]
       add: (cb=null,active=true) -> 
-        ret = {points:[],stroke:\#000000,fill:\none, order: ++$scope.orders, lid: ++$scope.layerid}
+        ret = {points:[],stroke:\#000000,fill:\#eeeeee, order: ++$scope.orders, lid: ++$scope.layerid}
         $scope.layers.$add ret .then (ref) -> 
           idx = $scope.layers.$indexFor ref.key!
           obj = $scope.layers[idx]
           if active => $scope.layer.set obj
           if cb => cb obj
-        #idx = $scope.layers.indexOf(ret)
-        #console.log idx
-        #$scope.layers.$save idx
-        #return $scope.layers[idx]
-        #$scope.layers[* - 1]
+
       remove: -> 
         if $scope.layers.length <=1 => return
         order = @target.order
-        idx = $scope.layers.indexOf(@target)
-        $scope.layers.$remove idx
-        #$scope.layers.splice(idx,1)
-        canodr = -1
-        for i from 0 til $scope.layers.length =>
-          if $scope.layers[i].order < order and $scope.layers[i].order > canodr => canodr = $scope.layers[i].order
-        if canodr = -1 =>
-          canodr = $scope.orders + 1
-          for i from 0 til $scope.layers.length =>
-            if $scope.layers[i].order > order and $scope.layers[i].order < canodr => canodr = $scope.layers[i].order
-        @target = $scope.layers.filter(->it.order == canodr).0
-        idx = $scope.layers.indexOf(@target)
-        @set idx
+        <~ $scope.layers.$remove @target .then
+
+        min = dis: -1, idx: -1
+        for idx from 0 til $scope.layers.length =>
+          dis = Math.abs(order - $scope.layers[idx].order)
+          if min.dis == -1 or dis < min.dis and dis > 0 => min <<< {dis, idx}
+        @target = $scope.layers[min.idx]
+        @set @target
+
       set: -> 
         if typeof(it) == typeof(0) => @target = $scope.layers[it]
         else => @target = it
-        console.log it,@target
         $scope.nodes = @target
         $scope.range.update $scope.nodes
-        console.log $scope.nodes.points
         $scope.path = ""
         build!
       target: $scope.layers.0
@@ -323,4 +319,8 @@ angular.module \main, <[firebase ngDraggable]>
           rg.xb += os.x or 0
           rg.ya += os.y or 0
           rg.yb += os.y or 0
+          rg.xa -= 5
+          rg.ya -= 5
+          rg.xb += 5
+          rg.yb += 5
           [rg.xc, rg.xd, rg.yc, rg.yd] = [rg.xa, rg.xb, rg.ya, rg.yb]
