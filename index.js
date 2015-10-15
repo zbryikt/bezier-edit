@@ -383,7 +383,7 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
         rx = [rg.xc, rg.xd];
         ry = [rg.yc, rg.yd];
         xp = idx % 2 ? 0 : 1;
-        yp = parseInt(idx / 2) ? 1 : 0;
+        yp = parseInt((idx - 1) / 2) ? 1 : 0;
         rx[xp] = x;
         ry[yp] = y;
         if (rx[1] <= rx[0] + 10) {

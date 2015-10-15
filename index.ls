@@ -240,7 +240,7 @@ angular.module \main, <[firebase ngDraggable]>
           rx = [rg.xc, rg.xd]
           ry = [rg.yc, rg.yd]
           xp = if idx % 2 => 0 else 1
-          yp = if parseInt(idx / 2) => 1 else 0
+          yp = if parseInt((idx - 1) / 2) => 1 else 0
           rx[xp] = x
           ry[yp] = y
           if rx.1 <= rx.0 + 10 => rx.1 = rx.0 + 11
