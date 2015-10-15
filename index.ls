@@ -45,15 +45,12 @@ angular.module \main, <[firebase ngDraggable]>
           -Math.cos(a - 6.28 / 4) * r * bcr
           -Math.sin(a - 6.28 / 4) * r * bcr
         ]
-      layer = $scope.layer.add!
+      (layer) <- $scope.layer.add
+      idx = $scope.layers.$indexFor layer
       layer.is-closed = true
-      console.log \A, ret
       layer.points = ret
-      console.log \B, layer.points
-      $scope.layers.$save $scope.layers.indexOf(layer)
+      $scope.layers.$save idx
       $scope.layer.set layer
-      console.log $scope.layers.indexOf(layer)
-      console.log \C, layer
       build!
 
     $scope.addsquare = ->
@@ -64,7 +61,7 @@ angular.module \main, <[firebase ngDraggable]>
         {anchor: [mx + r, my + r], ctrl1: [0,0], ctrl2: [0,0]}
         {anchor: [mx - r, my + r], ctrl1: [0,0], ctrl2: [0,0]}
       ]
-      layer = $scope.layer.add!
+      (layer) <- $scope.layer.add
       layer.is-closed = true
       layer.points = ret
     $scope.reorder = (s, d, e)->
@@ -92,11 +89,18 @@ angular.module \main, <[firebase ngDraggable]>
       #if d <= $scope.layers.length => $scope.layers.splice d, 0, layer
       #else $scope.layers.push layer
     $scope.layer = do
-      add: -> 
+      add: (cb=null,active=true) -> 
         ret = {points:[],stroke:\#000000,fill:\none, order: ++$scope.orders, lid: ++$scope.layerid}
-        $scope.layers.$add ret
-        $scope.layers.$save $scope.layers.indexOf(ret)
-        $scope.layers[* - 1]
+        $scope.layers.$add ret .then (ref) -> 
+          idx = $scope.layers.$indexFor ref.key!
+          obj = $scope.layers[idx]
+          if active => $scope.layer.set obj
+          if cb => cb obj
+        #idx = $scope.layers.indexOf(ret)
+        #console.log idx
+        #$scope.layers.$save idx
+        #return $scope.layers[idx]
+        #$scope.layers[* - 1]
       remove: -> 
         if $scope.layers.length <=1 => return
         order = @target.order
@@ -116,11 +120,12 @@ angular.module \main, <[firebase ngDraggable]>
       set: -> 
         if typeof(it) == typeof(0) => @target = $scope.layers[it]
         else => @target = it
+        console.log it,@target
         $scope.nodes = @target
         $scope.range.update $scope.nodes
-
-        build!
+        console.log $scope.nodes.points
         $scope.path = ""
+        build!
       target: $scope.layers.0
       buildall: ->
         for layer in $scope.layers =>

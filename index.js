@@ -47,7 +47,7 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
   };
   bcr = 4 * (Math.sqrt(2) - 1) / 3;
   $scope.addcircle = function(){
-    var ref$, mx, my, r, ret, i$, step$, a, layer;
+    var ref$, mx, my, r, ret, i$, step$, a;
     ref$ = [1024 / 2, 600 / 2, 50], mx = ref$[0], my = ref$[1], r = ref$[2];
     ret = [];
     for (i$ = 0, step$ = 6.28 / 4; step$ < 0 ? i$ > 6.28 : i$ < 6.28; i$ += step$) {
@@ -58,19 +58,18 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
         ctrl2: [-Math.cos(a - 6.28 / 4) * r * bcr, -Math.sin(a - 6.28 / 4) * r * bcr]
       });
     }
-    layer = $scope.layer.add();
-    layer.isClosed = true;
-    console.log('A', ret);
-    layer.points = ret;
-    console.log('B', layer.points);
-    $scope.layers.$save($scope.layers.indexOf(layer));
-    $scope.layer.set(layer);
-    console.log($scope.layers.indexOf(layer));
-    console.log('C', layer);
-    return build();
+    return $scope.layer.add(function(layer){
+      var idx;
+      idx = $scope.layers.$indexFor(layer);
+      layer.isClosed = true;
+      layer.points = ret;
+      $scope.layers.$save(idx);
+      $scope.layer.set(layer);
+      return build();
+    });
   };
   $scope.addsquare = function(){
-    var ref$, mx, my, r, ret, layer;
+    var ref$, mx, my, r, ret;
     ref$ = [1024 / 2, 600 / 2, 50], mx = ref$[0], my = ref$[1], r = ref$[2];
     ret = [
       {
@@ -91,9 +90,10 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
         ctrl2: [0, 0]
       }
     ];
-    layer = $scope.layer.add();
-    layer.isClosed = true;
-    return layer.points = ret;
+    return $scope.layer.add(function(layer){
+      layer.isClosed = true;
+      return layer.points = ret;
+    });
   };
   $scope.reorder = function(s, d, e){
     var des, desIdx, i$, to$, i, l;
@@ -126,8 +126,10 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     return $scope.layers.$save(desIdx);
   };
   $scope.layer = {
-    add: function(){
-      var ret, ref$;
+    add: function(cb, active){
+      var ret;
+      cb == null && (cb = null);
+      active == null && (active = true);
       ret = {
         points: [],
         stroke: '#000000',
@@ -135,9 +137,17 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
         order: ++$scope.orders,
         lid: ++$scope.layerid
       };
-      $scope.layers.$add(ret);
-      $scope.layers.$save($scope.layers.indexOf(ret));
-      return (ref$ = $scope.layers)[ref$.length - 1];
+      return $scope.layers.$add(ret).then(function(ref){
+        var idx, obj;
+        idx = $scope.layers.$indexFor(ref.key());
+        obj = $scope.layers[idx];
+        if (active) {
+          $scope.layer.set(obj);
+        }
+        if (cb) {
+          return cb(obj);
+        }
+      });
     },
     remove: function(){
       var order, idx, canodr, i$, to$, i;
@@ -175,10 +185,12 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       } else {
         this.target = it;
       }
+      console.log(it, this.target);
       $scope.nodes = this.target;
       $scope.range.update($scope.nodes);
-      build();
-      return $scope.path = "";
+      console.log($scope.nodes.points);
+      $scope.path = "";
+      return build();
     },
     target: $scope.layers[0],
     buildall: function(){
