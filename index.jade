@@ -54,7 +54,7 @@ html(lang="en")
       .row
         .col-sm-8
           svg#svg.widget(width="90%",height="600px",viewBox="0 0 1024 600",preserveAspectRatio="xMidYMid")
-            path(ng-repeat="l in layers",ng-attr-d="{{l.path}}",ng-attr-stroke="{{l.stroke}}",ng-attr-fill="{{l.fill}}",opacity="0.5",ng-attr-transform="translate({{l.offset.x || 0}} {{l.offset.y || 0}})")
+            path(ng-repeat="l in layers",ng-attr-d="{{l.path}}",ng-attr-stroke="{{l.stroke}}",ng-attr-fill="{{l.fill}}",opacity="0.5",ng-attr-transform="translate({{l.offset.x || 0}} {{l.offset.y || 0}})",ng-click="layer.set(l)")
             path.activepath(ng-attr-d="{{path}}",ng-attr-stroke="{{nodes.stroke}}",ng-attr-fill="{{nodes.fill}}",
             ng-attr-transform="translate({{nodes.offset.x || 0}} {{nodes.offset.y || 0}})")
             g(ng-repeat="c in nodes.points",
@@ -72,7 +72,7 @@ html(lang="en")
 
         .col-sm-4
           #layers.widget
-            .layer.widget(ng-drop="true",ng-drop-success="reorder($data, $index, $event)",ng-drag="true",ng-drag-data="{{$index}}",ng-repeat="l in layers",ng-click="layer.set(l)",ng-class="{'active':layer.target==l}") layer #[small ( {{l.points.length || 0}} nodes)] 
+            .layer.widget(ng-drop="true",ng-drop-success="reorder($data, l.order, $event)",ng-drag="true",ng-drag-data="{{l.lid}}",ng-repeat="l in layers|orderBy:'order'",ng-click="layer.set(l)",ng-class="{'active':layer.target==l}") layer #[small ( {{l.points.length || 0}} nodes / {{l.order}})] 
             .text-center
               .btn-group(style="margin-top:10px")
                 .btn.btn-default.btn-sm(ng-click="layer.add()") Add

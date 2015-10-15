@@ -5,9 +5,31 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
   var ref, layers, ref$, w, h, padding, bcr, random, build, getpath;
   ref = new Firebase('https://aidraw.firebaseio.com/layers');
   layers = $firebaseArray(ref);
+  $scope.layerid = -1;
+  $scope.orders = -1;
   layers.$watch(function(){
+    var i$, to$, i, l;
+    $scope.layers = layers;
     if (!$scope.nodes) {
       $scope.nodes = $scope.layers[0];
+    }
+    $scope.layerid = Math.max.apply(null, layers.map(function(it){
+      return it.lid || -1;
+    }));
+    $scope.orders = Math.max.apply(null, layers.map(function(it){
+      return it.order || -1;
+    }));
+    for (i$ = 0, to$ = $scope.layers.length; i$ < to$; ++i$) {
+      i = i$;
+      l = $scope.layers[i];
+      if (!(l.order != null)) {
+        l.order = ++$scope.orders;
+        $scope.layers.$save(i);
+      }
+      if (!(l.lid != null)) {
+        l.lid = ++$scope.layerid;
+        $scope.layers.$save(i);
+      }
     }
     return build();
   });
@@ -35,7 +57,14 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     }
     layer = $scope.layer.add();
     layer.isClosed = true;
-    return layer.points = ret;
+    console.log('A', ret);
+    layer.points = ret;
+    console.log('B', layer.points);
+    $scope.layers.$save($scope.layers.indexOf(layer));
+    $scope.layer.set(layer);
+    console.log($scope.layers.indexOf(layer));
+    console.log('C', layer);
+    return build();
   };
   $scope.addsquare = function(){
     var ref$, mx, my, r, ret, layer;
@@ -64,36 +93,78 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     return layer.points = ret;
   };
   $scope.reorder = function(s, d, e){
-    var layer;
-    layer = $scope.layers.splice(s, 1)[0];
-    if (d <= $scope.layers.length) {
-      return $scope.layers.splice(d, 0, layer);
-    } else {
-      return $scope.layers.push(layer);
+    var des, desIdx, i$, to$, i, l;
+    s = $scope.layers.filter(function(it){
+      return it.lid === s;
+    })[0].order;
+    des = null;
+    desIdx = -1;
+    for (i$ = 0, to$ = $scope.layers.length; i$ < to$; ++i$) {
+      i = i$;
+      l = $scope.layers[i];
+      if (l.order === s) {
+        des = l;
+        desIdx = i;
+      }
+      if (l.order > s) {
+        l.order--;
+        $scope.layers.$save(i);
+      }
     }
+    for (i$ = 0, to$ = $scope.layers.length; i$ < to$; ++i$) {
+      i = i$;
+      l = $scope.layers[i];
+      if (l.order >= d) {
+        l.order++;
+        $scope.layers.$save(i);
+      }
+    }
+    des.order = d;
+    return $scope.layers.$save(desIdx);
   };
   $scope.layer = {
     add: function(){
-      var ret;
+      var ret, ref$;
       ret = {
         points: [],
         stroke: '#000000',
-        fill: 'none'
+        fill: 'none',
+        order: ++$scope.orders,
+        lid: ++$scope.layerid
       };
       $scope.layers.$add(ret);
-      $scope.layers.$save();
-      return ret;
+      $scope.layers.$save($scope.layers.indexOf(ret));
+      return (ref$ = $scope.layers)[ref$.length - 1];
     },
     remove: function(){
-      var idx, ref$;
+      var order, idx, canodr, i$, to$, i;
       if ($scope.layers.length <= 1) {
         return;
       }
+      order = this.target.order;
       idx = $scope.layers.indexOf(this.target);
       $scope.layers.$remove(idx);
-      this.target = $scope.layers[(ref$ = idx - 1) > 0 ? ref$ : 0];
-      this.set((ref$ = idx - 1) > 0 ? ref$ : 0);
-      return $scope.layers.$save();
+      canodr = -1;
+      for (i$ = 0, to$ = $scope.layers.length; i$ < to$; ++i$) {
+        i = i$;
+        if ($scope.layers[i].order < order && $scope.layers[i].order > canodr) {
+          canodr = $scope.layers[i].order;
+        }
+      }
+      if (canodr = -1) {
+        canodr = $scope.orders + 1;
+        for (i$ = 0, to$ = $scope.layers.length; i$ < to$; ++i$) {
+          i = i$;
+          if ($scope.layers[i].order > order && $scope.layers[i].order < canodr) {
+            canodr = $scope.layers[i].order;
+          }
+        }
+      }
+      this.target = $scope.layers.filter(function(it){
+        return it.order === canodr;
+      })[0];
+      idx = $scope.layers.indexOf(this.target);
+      return this.set(idx);
     },
     set: function(it){
       if (typeof it === typeof 0) {
@@ -254,7 +325,8 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     mup: function(e){
       $scope.dragpath.active = false;
       $scope.idx = null;
-      return $scope.ctrl = null;
+      $scope.ctrl = null;
+      return $scope.layers.$save($scope.layers.indexOf($scope.nodes));
     },
     keydown: function(e){
       var keycode;
@@ -275,10 +347,11 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     stroke: 'black'
   };
   return $('#fillbtn')[0]._ldcpnode._ldcp.on('change', function(color){
-    return $scope.$apply(function(){
+    $scope.$apply(function(){
       if ($scope.nodes && $scope.nodes[$scope.color.target]) {
         return $scope.nodes[$scope.color.target] = color;
       }
     });
+    return $scope.layers.$save($scope.layers.indexOf($scope.nodes));
   });
 }));
