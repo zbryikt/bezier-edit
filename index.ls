@@ -21,8 +21,19 @@ angular.module \main, <[firebase ngDraggable]>
         if !(l.lid?) => 
           l.lid = ++$scope.layerid
           $scope.layers.$save i
-      if $scope.nodes => $scope.layer.set $scope.nodes
+      if $scope.nodes => 
+        idx = $scope.layers.$indexFor $scope.nodes.$id
+        if idx < 0 =>
+          order = $scope.nodes
+          min = dis: -1, idx: -1
+          for idx from 0 til $scope.layers.length =>
+            dis = Math.abs(order - $scope.layers[idx].order)
+            if min.dis == -1 or dis < min.dis and dis > 0 => min <<< {dis, idx}
+          $scope.layer.set min.idx
+        else $scope.layer.set $scope.nodes
+
       else $scope.layer.set 0
+
 
       build!
     $scope.$watch 'nodes' -> $scope.range.update $scope.nodes

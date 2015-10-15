@@ -12,7 +12,7 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     return $scope.opacity = $scope.opacity === 0.5 ? 1 : 0.5;
   };
   layers.$watch(function(){
-    var i$, to$, i, l;
+    var i$, to$, i, l, idx, order, min, dis;
     $scope.layers = layers;
     if (!$scope.nodes) {
       $scope.nodes = $scope.layers[0];
@@ -36,7 +36,25 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       }
     }
     if ($scope.nodes) {
-      $scope.layer.set($scope.nodes);
+      idx = $scope.layers.$indexFor($scope.nodes.$id);
+      if (idx < 0) {
+        order = $scope.nodes;
+        min = {
+          dis: -1,
+          idx: -1
+        };
+        for (i$ = 0, to$ = $scope.layers.length; i$ < to$; ++i$) {
+          idx = i$;
+          dis = Math.abs(order - $scope.layers[idx].order);
+          if (min.dis === -1 || dis < min.dis && dis > 0) {
+            min.dis = dis;
+            min.idx = idx;
+          }
+        }
+        $scope.layer.set(min.idx);
+      } else {
+        $scope.layer.set($scope.nodes);
+      }
     } else {
       $scope.layer.set(0);
     }
