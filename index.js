@@ -33,6 +33,9 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     }
     return build();
   });
+  $scope.$watch('nodes', function(){
+    return $scope.range.update($scope.nodes);
+  });
   ref$ = [1024, 600, 60], w = ref$[0], h = ref$[1], padding = ref$[2];
   $scope.chosen = null;
   $scope.layers = layers != null
@@ -173,6 +176,7 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
         this.target = it;
       }
       $scope.nodes = this.target;
+      $scope.range.update($scope.nodes);
       build();
       return $scope.path = "";
     },
@@ -215,7 +219,8 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     ret.ctrl1 = [Math.random() * 100 - 50, Math.random() * 100 - 50];
     ret.ctrl2 = [Math.random() * 100 - 50, Math.random() * 100 - 50];
     ((ref$ = $scope.nodes).points || (ref$.points = [])).push(ret);
-    return $scope.layers.$save($scope.layers.indexOf($scope.nodes));
+    $scope.layers.$save($scope.layers.indexOf($scope.nodes));
+    return $scope.range.update($scope.nodes);
   };
   build = function(){
     var ret;
@@ -257,6 +262,9 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       if ((node.attr('class') || "").split(' ').indexOf('ctrl') >= 0) {
         $scope.ctrl = node.attr('ctrl');
       }
+      if (node.attr('range')) {
+        $scope.range.idx = parseInt(node.attr('range'));
+      }
       while (node) {
         if (node.attr('idx')) {
           break;
@@ -293,18 +301,64 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       y = ((y - dy) / h) * 600;
       return [x, y];
     },
+    remap: function(arg$, os){
+      var x, y, rg, dx2, dy2, dx1, dy1;
+      x = arg$[0], y = arg$[1];
+      rg = $scope.range;
+      dx2 = rg.xd - rg.xc;
+      dy2 = rg.yd - rg.yc;
+      dx1 = rg.xb - rg.xa;
+      dy1 = rg.yb - rg.ya;
+      if (dx1 !== 0) {
+        x = (os.x + x - rg.xa) * dx2 / dx1 + rg.xc - os.x;
+      }
+      if (dy1 !== 0) {
+        y = (os.y + y - rg.ya) * dy2 / dy1 + rg.yc - os.y;
+      }
+      return [x, y];
+    },
     move: function(e){
-      var ref$, x, y, item;
+      var ref$, x, y, idx, rg, rx, ry, xp, yp, os, i$, len$, p, item;
       if (!$scope.nodes) {
         return;
       }
       ref$ = [e.offsetX, e.offsetY], x = ref$[0], y = ref$[1];
       ref$ = this.map([x, y]), x = ref$[0], y = ref$[1];
+      if ($scope.range.idx) {
+        idx = $scope.range.idx;
+        rg = $scope.range;
+        rx = [rg.xc, rg.xd];
+        ry = [rg.yc, rg.yd];
+        xp = idx % 2 ? 0 : 1;
+        yp = parseInt(idx / 2) ? 1 : 0;
+        rx[xp] = x;
+        ry[yp] = y;
+        if (rx[1] <= rx[0] + 10) {
+          rx[1] = rx[0] + 11;
+        }
+        if (ry[1] <= ry[0] + 10) {
+          ry[1] = ry[0] + 11;
+        }
+        ref$ = [rx[0], rx[1], ry[0], ry[1]], rg.xc = ref$[0], rg.xd = ref$[1], rg.yc = ref$[2], rg.yd = ref$[3];
+        os = $scope.nodes.offset;
+        for (i$ = 0, len$ = (ref$ = $scope.nodes.points).length; i$ < len$; ++i$) {
+          p = ref$[i$];
+          p.ctrl1 = this.remap([p.ctrl1[0] + p.anchor[0], p.ctrl1[1] + p.anchor[1]], os);
+          p.ctrl2 = this.remap([p.ctrl2[0] + p.anchor[0], p.ctrl2[1] + p.anchor[1]], os);
+          p.anchor = this.remap(p.anchor, os);
+          p.ctrl1 = [p.ctrl1[0] - p.anchor[0], p.ctrl1[1] - p.anchor[1]];
+          p.ctrl2 = [p.ctrl2[0] - p.anchor[0], p.ctrl2[1] - p.anchor[1]];
+        }
+        ref$ = [rg.xc, rg.xd, rg.yc, rg.yd], rg.xa = ref$[0], rg.xb = ref$[1], rg.ya = ref$[2], rg.yb = ref$[3];
+        build();
+        return;
+      }
       if ($scope.dragpath.active) {
         $scope.nodes.offset = {
           x: x - $scope.dragpath.ptr[0],
           y: y - $scope.dragpath.ptr[1]
         };
+        $scope.range.update($scope.nodes);
         return;
       }
       if ($scope.nodes.offset) {
@@ -323,6 +377,7 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       }
     },
     mup: function(e){
+      $scope.range.idx = 0;
       $scope.dragpath.active = false;
       $scope.idx = null;
       $scope.ctrl = null;
@@ -346,7 +401,7 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     fill: 'none',
     stroke: 'black'
   };
-  return $('#fillbtn')[0]._ldcpnode._ldcp.on('change', function(color){
+  $('#fillbtn')[0]._ldcpnode._ldcp.on('change', function(color){
     $scope.$apply(function(){
       if ($scope.nodes && $scope.nodes[$scope.color.target]) {
         return $scope.nodes[$scope.color.target] = color;
@@ -354,4 +409,51 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     });
     return $scope.layers.$save($scope.layers.indexOf($scope.nodes));
   });
+  return $scope.range = {
+    idx: 0,
+    xa: 10,
+    ya: 10,
+    xb: 100,
+    yb: 100,
+    xc: 10,
+    yc: 10,
+    xd: 100,
+    yd: 100,
+    show: false,
+    update: function(node){
+      var ps, os, rg, ref$, i$, to$, i, a;
+      if (!node) {
+        this.show = false;
+        return;
+      }
+      if ((node.points || (node.points = [])).length) {
+        this.show = true;
+        ps = node.points;
+        os = node.offset || (node.offset = {});
+        rg = $scope.range;
+        ref$ = [ps[0].anchor[0], ps[0].anchor[0], ps[0].anchor[1], ps[0].anchor[1]], rg.xa = ref$[0], rg.xb = ref$[1], rg.ya = ref$[2], rg.yb = ref$[3];
+        for (i$ = 0, to$ = ps.length; i$ < to$; ++i$) {
+          i = i$;
+          a = ps[i].anchor;
+          if (a[0] < rg.xa) {
+            rg.xa = a[0];
+          }
+          if (a[0] > rg.xb) {
+            rg.xb = a[0];
+          }
+          if (a[1] < rg.ya) {
+            rg.ya = a[1];
+          }
+          if (a[1] > rg.yb) {
+            rg.yb = a[1];
+          }
+        }
+        rg.xa += os.x || 0;
+        rg.xb += os.x || 0;
+        rg.ya += os.y || 0;
+        rg.yb += os.y || 0;
+        return ref$ = [rg.xa, rg.xb, rg.ya, rg.yb], rg.xc = ref$[0], rg.xd = ref$[1], rg.yc = ref$[2], rg.yd = ref$[3], ref$;
+      }
+    }
+  };
 }));

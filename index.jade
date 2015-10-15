@@ -68,6 +68,12 @@ html(lang="en")
               circle.anchor(cx="0",cy="0",r="4",fill="black")
               circle.ctrl(ng-attr-cx="{{c.ctrl1[0]}}",ng-attr-cy="{{c.ctrl1[1]}}",r="3",ctrl="1",ng-if="$index>0 || nodes.isClosed")
               circle.ctrl(ng-attr-cx="{{c.ctrl2[0]}}",ng-attr-cy="{{c.ctrl2[1]}}",r="3",ctrl="2",ng-if="$index<nodes.points.length - 1 || nodes.isClosed")
+            g(ng-if="range.show")
+              rect(ng-attr-x="{{range.xa}}",ng-attr-y="{{range.ya}}",ng-attr-width="{{range.xb - range.xa}}",ng-attr-height="{{range.yb - range.ya}}",fill="none",stroke="rgba(0,0,0,0.5)",stroke-dasharray="5 5",stroke-width="1")
+              circle.range(ng-attr-cx="{{range.xa}}",ng-attr-cy="{{range.ya}}",r="4",fill="white",stroke="green",range="1")
+              circle.range(ng-attr-cx="{{range.xb}}",ng-attr-cy="{{range.ya}}",r="4",fill="white",stroke="green",range="2")
+              circle.range(ng-attr-cx="{{range.xa}}",ng-attr-cy="{{range.yb}}",r="4",fill="white",stroke="green",range="3")
+              circle.range(ng-attr-cx="{{range.xb}}",ng-attr-cy="{{range.yb}}",r="4",fill="white",stroke="green",range="4")
 
 
         .col-sm-4

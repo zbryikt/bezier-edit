@@ -21,7 +21,7 @@ angular.module \main, <[firebase ngDraggable]>
           $scope.layers.$save i
 
       build!
-
+    $scope.$watch 'nodes' -> $scope.range.update $scope.nodes
     [w,h,padding] = [1024, 600, 60]
     $scope.chosen = null
     $scope.layers = (if layers? => layers else [])
@@ -117,6 +117,8 @@ angular.module \main, <[firebase ngDraggable]>
         if typeof(it) == typeof(0) => @target = $scope.layers[it]
         else => @target = it
         $scope.nodes = @target
+        $scope.range.update $scope.nodes
+
         build!
         $scope.path = ""
       target: $scope.layers.0
@@ -152,6 +154,7 @@ angular.module \main, <[firebase ngDraggable]>
       #$scope.nodes.$add ret
       $scope.nodes.[]points.push ret
       $scope.layers.$save $scope.layers.indexOf($scope.nodes)
+      $scope.range.update $scope.nodes
     #if $scope.nodes.length == 0 => for i from 0 til 6 => random i
     build = ->
       if !$scope.nodes or !$scope.nodes.points or $scope.nodes.points.length == 0 => return
@@ -178,6 +181,7 @@ angular.module \main, <[firebase ngDraggable]>
         node = $(e.target)
         if (node.attr(\class) or "").split(' ').indexOf(\ctrl) >= 0 =>
           $scope.ctrl = node.attr \ctrl
+        if (node.attr(\range)) => $scope.range.idx = parseInt(node.attr(\range))
         while node
           if node.attr(\idx) => break
           if (node.attr(\class) or "").split(' ').indexOf(\activepath) >=0 => break
@@ -201,12 +205,45 @@ angular.module \main, <[firebase ngDraggable]>
         y = ( (y - dy) / h ) * 600
         [x,y]
 
+      remap: ([x,y], os) ->
+        rg = $scope.range
+        dx2 = rg.xd - rg.xc
+        dy2 = rg.yd - rg.yc
+        dx1 = rg.xb - rg.xa
+        dy1 = rg.yb - rg.ya
+        if dx1 != 0 => x = (( os.x + x - rg.xa ) * dx2 / dx1) + rg.xc - os.x
+        if dy1 != 0 => y = (( os.y + y - rg.ya ) * dy2 / dy1) + rg.yc - os.y
+        [x,y]
       move: (e) -> 
         if !$scope.nodes => return
         [x,y] = [ e.offsetX, e.offsetY ]
         [x,y] = @map [x,y]
+        if $scope.range.idx =>
+          idx = $scope.range.idx
+          rg = $scope.range
+          rx = [rg.xc, rg.xd]
+          ry = [rg.yc, rg.yd]
+          xp = if idx % 2 => 0 else 1
+          yp = if parseInt(idx / 2) => 1 else 0
+          rx[xp] = x
+          ry[yp] = y
+          if rx.1 <= rx.0 + 10 => rx.1 = rx.0 + 11
+          if ry.1 <= ry.0 + 10 => ry.1 = ry.0 + 11
+          [rg.xc, rg.xd, rg.yc, rg.yd] = [rx.0, rx.1, ry.0, ry.1]
+
+          os = $scope.nodes.offset
+          for p in $scope.nodes.points =>
+            p.ctrl1 = @remap([p.ctrl1.0 + p.anchor.0, p.ctrl1.1 + p.anchor.1], os)
+            p.ctrl2 = @remap([p.ctrl2.0 + p.anchor.0, p.ctrl2.1 + p.anchor.1], os)
+            p.anchor = @remap(p.anchor, os)
+            p.ctrl1 = [p.ctrl1.0 - p.anchor.0, p.ctrl1.1 - p.anchor.1]
+            p.ctrl2 = [p.ctrl2.0 - p.anchor.0, p.ctrl2.1 - p.anchor.1]
+          [rg.xa, rg.xb, rg.ya, rg.yb] = [rg.xc, rg.xd, rg.yc, rg.yd]
+          build!
+          return
         if $scope.dragpath.active =>
           $scope.nodes.offset = {x: x - $scope.dragpath.ptr.0, y: y - $scope.dragpath.ptr.1}
+          $scope.range.update $scope.nodes
           return
         if $scope.nodes.offset =>
           [x,y] = [x - ($scope.nodes.offset.x or 0), y - ($scope.nodes.offset.y or 0)]
@@ -221,6 +258,7 @@ angular.module \main, <[firebase ngDraggable]>
           build!
         #$scope.layers.$save $scope.idx
       mup:  (e) -> 
+        $scope.range.idx = 0
         $scope.dragpath.active = false
         $scope.idx = null
         $scope.ctrl = null
@@ -243,3 +281,41 @@ angular.module \main, <[firebase ngDraggable]>
         $scope.nodes[$scope.color.target] = color
       $scope.layers.$save $scope.layers.indexOf($scope.nodes)
 
+    $scope.range = do
+      idx: 0
+      xa: 10
+      ya: 10
+      xb: 100
+      yb: 100
+
+      xc: 10
+      yc: 10
+      xd: 100
+      yd: 100
+      show: false
+      update: (node) ->
+        if !node =>
+          @show = false
+          return
+        if node.[]points.length =>
+          @show = true
+          ps = node.points
+          os = node.{}offset
+          rg = $scope.range
+          [rg.xa, rg.xb, rg.ya, rg.yb] = [
+            ps.0.anchor.0,
+            ps.0.anchor.0, 
+            ps.0.anchor.1,
+            ps.0.anchor.1
+          ]
+          for i from 0 til ps.length  =>
+            a = ps[i].anchor
+            if a.0 < rg.xa => rg.xa = a.0
+            if a.0 > rg.xb => rg.xb = a.0
+            if a.1 < rg.ya => rg.ya = a.1
+            if a.1 > rg.yb => rg.yb = a.1
+          rg.xa += os.x or 0
+          rg.xb += os.x or 0
+          rg.ya += os.y or 0
+          rg.yb += os.y or 0
+          [rg.xc, rg.xd, rg.yc, rg.yd] = [rg.xa, rg.xb, rg.ya, rg.yb]
