@@ -108,6 +108,7 @@ angular.module \main, <[firebase ngDraggable]>
         ret.offset = {} <<< $scope.nodes.offset
         ret.offset.x += Math.random! * 50 + 20
         ret.offset.y += Math.random! * 50 + 20
+        ret.is-closed = !!ret.is-closed
         $scope.layers.$add ret .then (ref) ->
           $scope.layer.set $scope.layers[$scope.layers.$indexFor(ref.key!)]
       add: (cb=null,active=true) -> 

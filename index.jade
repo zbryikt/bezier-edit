@@ -56,7 +56,7 @@ html(lang="en")
       .row
         .col-sm-8
           svg#svg.widget(width="90%",height="600px",viewBox="0 0 1024 600",preserveAspectRatio="xMidYMid",ng-class="{'preview':opacity==1}")
-            path(ng-repeat="l in layers|orderBy:'-order'",ng-attr-d="{{l.path}}",ng-attr-stroke="{{l.stroke}}",ng-attr-fill="{{l.fill}}",ng-attr-opacity="{{opacity}}",ng-attr-transform="translate({{l.offset.x || 0}} {{l.offset.y || 0}})",ng-click="layer.set(l)")
+            path(ng-repeat="l in layers|orderBy:'order'",ng-attr-d="{{l.path}}",ng-attr-stroke="{{l.stroke}}",ng-attr-fill="{{l.fill}}",ng-attr-opacity="{{opacity}}",ng-attr-transform="translate({{l.offset.x || 0}} {{l.offset.y || 0}})",ng-click="layer.set(l)")
             path.activepath(ng-attr-d="{{path}}",ng-attr-stroke="{{nodes.stroke}}",ng-attr-fill="{{nodes.fill}}",
             ng-attr-transform="translate({{nodes.offset.x || 0}} {{nodes.offset.y || 0}})",ng-class="{'light':opacity==1}")
             g(ng-repeat="c in nodes.points",
@@ -85,4 +85,4 @@ html(lang="en")
                 .btn.btn-default.btn-sm(ng-click="layer.add()") Add
                 .btn.btn-default.btn-sm(ng-click="layer.clone()") Clone
                 .btn.btn-default.btn-sm(ng-click="layer.remove()") Remove
-            .layer.widget(ng-drop="true",ng-drop-success="reorder($data, l.order, $event)",ng-drag="true",ng-drag-data="{{l.lid}}",ng-repeat="l in layers|orderBy:'order'",ng-click="layer.set(l)",ng-class="{'active':layer.target==l}") layer #[small ( {{l.points.length || 0}} nodes / {{l.order}})] 
+            .layer.widget(ng-drop="true",ng-drop-success="reorder($data, l.order, $event)",ng-drag="true",ng-drag-data="{{l.lid}}",ng-repeat="l in layers|orderBy:'-order'",ng-click="layer.set(l)",ng-class="{'active':layer.target==l}") layer #[small ( {{l.points.length || 0}} nodes / {{l.order}})] 

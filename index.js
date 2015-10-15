@@ -171,6 +171,7 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       ret.offset = import$({}, $scope.nodes.offset);
       ret.offset.x += Math.random() * 50 + 20;
       ret.offset.y += Math.random() * 50 + 20;
+      ret.isClosed = !!ret.isClosed;
       return $scope.layers.$add(ret).then(function(ref){
         return $scope.layer.set($scope.layers[$scope.layers.$indexFor(ref.key())]);
       });
