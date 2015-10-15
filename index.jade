@@ -26,14 +26,14 @@ html(lang="en")
   ng-mousedown="ptrctrl.down($event)",ng-mousemove="ptrctrl.move($event)",ng-mouseup="ptrctrl.mup($event)")
     #root
       .btn-group
-        .btn.btn-default: i.fa.fa-mouse-pointer
-        .btn.btn-default: i.fa.fa-pencil
-        .btn.btn-default(ng-click="addcircle()"): i.fa.fa-circle
-        .btn.btn-default(ng-click="addsquare()"): i.fa.fa-square
+        //-.btn.btn-default: i.fa.fa-mouse-pointer
+        //-.btn.btn-default: i.fa.fa-pencil
+        .btn.btn-default(ng-click="addcircle()",data-toggle="tooltip",data-placement="bottom",title="add a circle"): i.fa.fa-circle
+        .btn.btn-default(ng-click="addsquare()",data-toggle="tooltip",data-placement="bottom",title="add a square"): i.fa.fa-square
       span &nbsp;
       .btn-group
-        .btn.btn-default(ng-click="random()"): i.fa.fa-plus
-        .btn.btn-default(ng-click="remove()"): i.fa.fa-minus
+        .btn.btn-default(ng-click="random()",data-toggle="tooltip",data-placement="bottom",title="add point"): i.fa.fa-plus
+        .btn.btn-default(ng-click="remove()",data-toggle="tooltip",data-placement="bottom",title="add point"): i.fa.fa-minus
       span &nbsp;
       .btn-group
         #fillbtn.btn.btn-default(ng-click="color.setTarget('fill')",
@@ -44,22 +44,24 @@ html(lang="en")
           i.fa.fa-ban(ng-if="nodes.fill=='none'",style="color:#ccc")
         #strokebtn.btn.btn-default(ng-click="color.setTarget('stroke')",
         ng-attr-style="color:{{nodes.stroke}}",
-        data-toggle="colorpicker",data-cpclass="shadow flat round"
+        data-toggle="colorpicker",data-cpclass="shadow flat round",
         data-exclusive="true")
           i.fa.fa-square-o(ng-if="nodes.stroke!='none'")
           i.fa.fa-ban(ng-if="nodes.stroke=='none'",style="color:#ccc")
-        #closebtn.btn.btn-default(ng-click="setClose()") C
+        #closebtn.btn.btn-default(ng-click="setClose()",data-toggle="tooltip",title="close/open path",data-placement="bottom"): i.fa.fa-circle-o-notch
+        #previewbtn.btn.btn-default(ng-click="preview()",ng-class="{'active':opacity==1}",data-toggle="tooltip",title="preview",data-placement="bottom"): i.fa.fa-play-circle-o
+
       br
       br
       .row
         .col-sm-8
-          svg#svg.widget(width="90%",height="600px",viewBox="0 0 1024 600",preserveAspectRatio="xMidYMid")
-            path(ng-repeat="l in layers",ng-attr-d="{{l.path}}",ng-attr-stroke="{{l.stroke}}",ng-attr-fill="{{l.fill}}",opacity="0.5",ng-attr-transform="translate({{l.offset.x || 0}} {{l.offset.y || 0}})",ng-click="layer.set(l)")
+          svg#svg.widget(width="90%",height="600px",viewBox="0 0 1024 600",preserveAspectRatio="xMidYMid",ng-class="{'preview':opacity==1}")
+            path(ng-repeat="l in layers|orderBy:'-order'",ng-attr-d="{{l.path}}",ng-attr-stroke="{{l.stroke}}",ng-attr-fill="{{l.fill}}",ng-attr-opacity="{{opacity}}",ng-attr-transform="translate({{l.offset.x || 0}} {{l.offset.y || 0}})",ng-click="layer.set(l)")
             path.activepath(ng-attr-d="{{path}}",ng-attr-stroke="{{nodes.stroke}}",ng-attr-fill="{{nodes.fill}}",
-            ng-attr-transform="translate({{nodes.offset.x || 0}} {{nodes.offset.y || 0}})")
+            ng-attr-transform="translate({{nodes.offset.x || 0}} {{nodes.offset.y || 0}})",ng-class="{'light':opacity==1}")
             g(ng-repeat="c in nodes.points",
             ng-attr-transform="translate({{c.anchor[0] + (nodes.offset.x || 0)}} {{c.anchor[1] + (nodes.offset.y || 0)}})",ng-attr-idx="{{$index}}",
-            ng-class="{'active':$index==chosen}")
+            ng-class="{'active':$index==chosen,'light':opacity==1}")
 
               line.ctrl(ng-attr-x1="{{c.ctrl1[0]}}",ng-attr-y1="{{c.ctrl1[1]}}",
               ng-attr-x2="0",ng-attr-y2="0",stroke="black",ng-if="$index>0 || nodes.isClosed")
@@ -68,7 +70,7 @@ html(lang="en")
               circle.anchor(cx="0",cy="0",r="4",fill="black")
               circle.ctrl(ng-attr-cx="{{c.ctrl1[0]}}",ng-attr-cy="{{c.ctrl1[1]}}",r="3",ctrl="1",ng-if="$index>0 || nodes.isClosed")
               circle.ctrl(ng-attr-cx="{{c.ctrl2[0]}}",ng-attr-cy="{{c.ctrl2[1]}}",r="3",ctrl="2",ng-if="$index<nodes.points.length - 1 || nodes.isClosed")
-            g(ng-if="range.show")
+            g(ng-if="range.show",ng-class="{'light':opacity==1}")
               rect(ng-attr-x="{{range.xa}}",ng-attr-y="{{range.ya}}",ng-attr-width="{{range.xb - range.xa}}",ng-attr-height="{{range.yb - range.ya}}",fill="none",stroke="rgba(0,0,0,0.5)",stroke-dasharray="5 5",stroke-width="1")
               circle.range(ng-attr-cx="{{range.xa}}",ng-attr-cy="{{range.ya}}",r="4",fill="white",stroke="green",range="1")
               circle.range(ng-attr-cx="{{range.xb}}",ng-attr-cy="{{range.ya}}",r="4",fill="white",stroke="green",range="2")

@@ -6,6 +6,8 @@ angular.module \main, <[firebase ngDraggable]>
     layers = $firebaseArray(ref)
     $scope.layerid = -1
     $scope.orders = -1
+    $scope.opacity = 0.5
+    $scope.preview = -> $scope.opacity = if $scope.opacity == 0.5 => 1 else 0.5
     layers.$watch -> 
       $scope.layers = layers
       if !$scope.nodes => $scope.nodes = $scope.layers.0
@@ -19,6 +21,8 @@ angular.module \main, <[firebase ngDraggable]>
         if !(l.lid?) => 
           l.lid = ++$scope.layerid
           $scope.layers.$save i
+      if $scope.nodes => $scope.layer.set $scope.nodes
+      else $scope.layer.set 0
 
       build!
     $scope.$watch 'nodes' -> $scope.range.update $scope.nodes
@@ -264,6 +268,7 @@ angular.module \main, <[firebase ngDraggable]>
         $scope.idx = null
         $scope.ctrl = null
         $scope.layers.$save $scope.layers.indexOf($scope.nodes)
+        $scope.range.update $scope.nodes
       keydown: (e) ->
         keycode = e.keyCode or e.which
         if keycode == 8 => 
@@ -324,3 +329,4 @@ angular.module \main, <[firebase ngDraggable]>
           rg.xb += 5
           rg.yb += 5
           [rg.xc, rg.xd, rg.yc, rg.yd] = [rg.xa, rg.xb, rg.ya, rg.yb]
+    $('[data-toggle="tooltip"]').tooltip!

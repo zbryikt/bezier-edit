@@ -11,11 +11,15 @@ body {
 .widget {
   border: 1px solid #999;
   border-radius: 3px;
-  background: #fff;
+  background-color: #fff;
   box-shadow: 0 2px 3px rgba(0,0,0,0.2);
 }
 svg {
   margin: auto;
+  background: url("grid.png");
+}
+svg.preview {
+  background: none;
 }
 circle.anchor {
   stroke: #000;
@@ -62,4 +66,8 @@ line.ctrl {
   box-shadow: 0 2px 3px rgba(255,192,0,0.5);
   border-color: #c08000;
   background: rgba(255,240,0,0.2);
+}
+path.activepath.light,
+g.light {
+  opacity: 0.1;
 }

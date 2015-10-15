@@ -7,6 +7,10 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
   layers = $firebaseArray(ref);
   $scope.layerid = -1;
   $scope.orders = -1;
+  $scope.opacity = 0.5;
+  $scope.preview = function(){
+    return $scope.opacity = $scope.opacity === 0.5 ? 1 : 0.5;
+  };
   layers.$watch(function(){
     var i$, to$, i, l;
     $scope.layers = layers;
@@ -30,6 +34,11 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
         l.lid = ++$scope.layerid;
         $scope.layers.$save(i);
       }
+    }
+    if ($scope.nodes) {
+      $scope.layer.set($scope.nodes);
+    } else {
+      $scope.layer.set(0);
     }
     return build();
   });
@@ -407,7 +416,8 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       $scope.dragpath.active = false;
       $scope.idx = null;
       $scope.ctrl = null;
-      return $scope.layers.$save($scope.layers.indexOf($scope.nodes));
+      $scope.layers.$save($scope.layers.indexOf($scope.nodes));
+      return $scope.range.update($scope.nodes);
     },
     keydown: function(e){
       var keycode;
@@ -435,7 +445,7 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     });
     return $scope.layers.$save($scope.layers.indexOf($scope.nodes));
   });
-  return $scope.range = {
+  $scope.range = {
     idx: 0,
     xa: 10,
     ya: 10,
@@ -486,6 +496,7 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
       }
     }
   };
+  return $('[data-toggle="tooltip"]').tooltip();
 }));
 function import$(obj, src){
   var own = {}.hasOwnProperty;
