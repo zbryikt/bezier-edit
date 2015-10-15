@@ -222,14 +222,14 @@ angular.module \main, <[firebase ngDraggable]>
         y = ( (y - dy) / h ) * 600
         [x,y]
 
-      remap: ([x,y], os) ->
+      remap: ([x,y], os = {}) ->
         rg = $scope.range
         dx2 = rg.xd - rg.xc
         dy2 = rg.yd - rg.yc
         dx1 = rg.xb - rg.xa
         dy1 = rg.yb - rg.ya
-        if dx1 != 0 => x = (( os.x + x - rg.xa ) * dx2 / dx1) + rg.xc - os.x
-        if dy1 != 0 => y = (( os.y + y - rg.ya ) * dy2 / dy1) + rg.yc - os.y
+        if dx1 != 0 => x = (( (os.x or 0) + x - rg.xa ) * dx2 / dx1) + rg.xc - (os.x or 0)
+        if dy1 != 0 => y = (( (os.y or 0) + y - rg.ya ) * dy2 / dy1) + rg.yc - (os.y or 0)
         [x,y]
       move: (e) -> 
         if !$scope.nodes => return

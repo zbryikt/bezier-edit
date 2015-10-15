@@ -358,16 +358,17 @@ x$.controller('main', ['$scope', '$firebaseArray'].concat(function($scope, $fire
     remap: function(arg$, os){
       var x, y, rg, dx2, dy2, dx1, dy1;
       x = arg$[0], y = arg$[1];
+      os == null && (os = {});
       rg = $scope.range;
       dx2 = rg.xd - rg.xc;
       dy2 = rg.yd - rg.yc;
       dx1 = rg.xb - rg.xa;
       dy1 = rg.yb - rg.ya;
       if (dx1 !== 0) {
-        x = (os.x + x - rg.xa) * dx2 / dx1 + rg.xc - os.x;
+        x = ((os.x || 0) + x - rg.xa) * dx2 / dx1 + rg.xc - (os.x || 0);
       }
       if (dy1 !== 0) {
-        y = (os.y + y - rg.ya) * dy2 / dy1 + rg.yc - os.y;
+        y = ((os.y || 0) + y - rg.ya) * dy2 / dy1 + rg.yc - (os.y || 0);
       }
       return [x, y];
     },
