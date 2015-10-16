@@ -86,3 +86,11 @@ html(lang="en")
                 .btn.btn-default.btn-sm(ng-click="layer.clone()") Clone
                 .btn.btn-default.btn-sm(ng-click="layer.remove()") Remove
             .layer.widget(ng-drop="true",ng-drop-success="reorder($data, l.order, $event)",ng-drag="true",ng-drag-data="{{l.lid}}",ng-repeat="l in layers|orderBy:'-order'",ng-click="layer.set(l)",ng-class="{'active':layer.target==l}") layer #[small ( {{l.points.length || 0}} nodes / {{l.order}})] 
+
+    script.
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-52410923-1', 'auto');
+      ga('send', 'pageview');
